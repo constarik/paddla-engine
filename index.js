@@ -187,12 +187,14 @@ function sha512Hex(msg) {
 
 function _chacha20Keystream(key32buf, nonce12buf, numBytes) {
   if (_crypto) {
-    const iv = Buffer.alloc(16);
-    iv.writeUInt32LE(0, 0);
-    nonce12buf.copy ? nonce12buf.copy(iv, 4) : iv.set(nonce12buf, 4);
-    const zeros = Buffer.alloc(numBytes);
-    const cipher = _crypto.createCipheriv('chacha20', key32buf, iv);
-    return cipher.update(zeros);
+    try {
+      const iv = Buffer.alloc(16);
+      iv.writeUInt32LE(0, 0);
+      nonce12buf.copy ? nonce12buf.copy(iv, 4) : iv.set(nonce12buf, 4);
+      const zeros = Buffer.alloc(numBytes);
+      const cipher = _crypto.createCipheriv('chacha20', key32buf, iv);
+      return cipher.update(zeros);
+    } catch (e) { /* runtime has crypto but no chacha20 cipher (e.g. Bun/JSC) -> pure-JS path; keystreams verified identical */ }
   }
   return _chacha20KeystreamPure(key32buf, nonce12buf, numBytes);
 }
@@ -218,9 +220,11 @@ class UVS_PRNG {
     if (this._pos + 4 > this._stream.length) {
       throw new Error('UVS_PRNG: keystream exhausted — increase pre-generated size');
     }
-    const val = _crypto
+    // branch on what the stream actually is, not on _crypto: a runtime may have
+    // crypto but no chacha20 (Bun/JSC), in which case the stream is a Uint8Array.
+    const val = (typeof this._stream.readUInt32LE === 'function')
       ? this._stream.readUInt32LE(this._pos)
-      : new DataView(this._stream.buffer).getUint32(this._pos, true);
+      : new DataView(this._stream.buffer, this._stream.byteOffset).getUint32(this._pos, true);
     this._pos += 4;
     this._log.push(val);
     return val;
