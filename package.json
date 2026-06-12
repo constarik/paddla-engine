@@ -1,6 +1,6 @@
 {
   "name": "paddla-engine",
-  "version": "9.0.8",
+  "version": "9.0.9",
   "description": "PADDLA physics arcade engine — UVS 1.0 compatible (ChaCha20 + SHA-512)",
   "main": "index.js",
   "license": "MIT",
@@ -9,5 +9,11 @@
     "type": "git",
     "url": "https://github.com/constarik/paddla-engine.git"
   },
-  "keywords": ["paddla", "uvs", "provably-fair", "chacha20", "gaming"]
+  "keywords": [
+    "paddla",
+    "uvs",
+    "provably-fair",
+    "chacha20",
+    "gaming"
+  ]
 }
